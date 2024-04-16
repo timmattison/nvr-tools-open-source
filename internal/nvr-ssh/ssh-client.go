@@ -1,18 +1,25 @@
 package nvr_ssh
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/timmattison/nvr-tools-open-source/pkg/nvr-errors"
 	"golang.org/x/crypto/ssh"
+	"net"
 	"os"
+	"strings"
 )
 
 var privateKeyLocations = []string{
-	".ssh/id_rsa", // Linux
+	".ssh/id_rsa",
 	".ssh/id_dsa",
 	".ssh/id_ecdsa",
 	".ssh/id_ed25519",
+}
+
+var knownHostsLocations = []string{
+	".ssh/known_hosts",
 }
 
 func GetSshClient(ctx context.Context, cancelFunc context.CancelCauseFunc, remoteHost string, remotePort int, remoteUser string, allowUnverifiedHosts bool) (*ssh.Client, error) {
@@ -92,6 +99,54 @@ func getSshClientConfig(remoteUser string, allowUnverifiedHosts bool) (*ssh.Clie
 
 	if allowUnverifiedHosts {
 		hostKeyCallback = ssh.InsecureIgnoreHostKey()
+	} else {
+		var knownHosts []byte
+
+		separator := ""
+
+		for _, knownHostsLocation := range knownHostsLocations {
+			knownHostsPath := home + string(os.PathSeparator) + knownHostsLocation
+
+			var currentKnownHosts []byte
+
+			if currentKnownHosts, err = os.ReadFile(knownHostsPath); err != nil {
+				// Error reading the known hosts file, ignoring it
+				continue
+			}
+
+			knownHosts = append(knownHosts, separator...)
+			separator = "\n"
+			knownHosts = append(knownHosts, currentKnownHosts...)
+		}
+
+		hostKeys := make(map[string]ssh.PublicKey)
+
+		for len(knownHosts) > 0 {
+			var hosts []string
+			var pubKey ssh.PublicKey
+
+			if _, hosts, pubKey, _, knownHosts, err = ssh.ParseKnownHosts(knownHosts); err != nil {
+				return nil, err
+			}
+
+			for _, host := range hosts {
+				hostKeys[host] = pubKey
+			}
+		}
+
+		hostKeyCallback = func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			ipAddress := strings.Split(hostname, ":")[0]
+
+			if hostKey, ok := hostKeys[ipAddress]; ok {
+				if bytes.Equal(hostKey.Marshal(), key.Marshal()) {
+					return nil
+				}
+
+				return fmt.Errorf("unknown host key for %s", ipAddress)
+			}
+
+			return fmt.Errorf("no keys found for %s", ipAddress)
+		}
 	}
 
 	config := &ssh.ClientConfig{
