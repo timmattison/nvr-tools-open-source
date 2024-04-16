@@ -142,10 +142,10 @@ func getSshClientConfig(remoteUser string, allowUnverifiedHosts bool) (*ssh.Clie
 					return nil
 				}
 
-				return fmt.Errorf("unknown host key for %s", ipAddress)
+				return nvr_errors.ErrKnownHostKeyMismatch
 			}
 
-			return fmt.Errorf("no keys found for %s", ipAddress)
+			return nvr_errors.ErrNoKnownHostKeyFound
 		}
 	}
 

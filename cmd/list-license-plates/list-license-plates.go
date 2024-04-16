@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/charmbracelet/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/timmattison/nvr-tools-open-source/internal/nvr-environment"
+	"github.com/timmattison/nvr-tools-open-source/pkg/nvr-errors"
 	"github.com/timmattison/nvr-tools-open-source/pkg/nvr-unifi-protect"
 	"os"
 )
@@ -39,6 +41,12 @@ func main() {
 	var err error
 
 	if tunneledDbSqlx, err = nvr_unifi_protect.GetTunneledUnifiProtectDbSqlx(ctx, cancelFunc, unifiProtectHost); err != nil {
+		if errors.Is(err, nvr_errors.ErrNoKnownHostKeyFound) {
+			log.Fatal("The known_hosts file does not contain the host key for the UniFi Protect host", "error", err)
+		} else if errors.Is(err, nvr_errors.ErrKnownHostKeyMismatch) {
+			log.Fatal("The known_hosts file contains a mismatched host key for the UniFi Protect host", "error", err)
+		}
+
 		log.Fatal("Failed to get tunneled DB connection", "error", err)
 	}
 

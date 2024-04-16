@@ -62,7 +62,7 @@ func getTunneledUnifiProtectDbUrl(ctx context.Context, cancelFunc context.Cancel
 }
 
 func getUnifiProtectSshClient(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string) (*ssh.Client, error) {
-	return nvr_ssh.GetSshClient(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectUsername, true)
+	return nvr_ssh.GetSshClient(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectUsername, false)
 }
 
 func tunnelToUnifiProtectDb(ctx context.Context, cancelFunc context.CancelCauseFunc, sshClient *ssh.Client) (string, int, error) {
