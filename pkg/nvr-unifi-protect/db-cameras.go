@@ -3,10 +3,10 @@ package nvr_unifi_protect
 import "github.com/jmoiron/sqlx"
 
 type CameraRecord struct {
-	Mac  string `db:"mac"`
-	Type string `db:"type"`
-	Name string `db:"name"`
-	Id   string `db:"id"`
+	Mac  string `json:"Mac" db:"mac"`
+	Type string `json:"Type" db:"type"`
+	Name string `json:"Name" db:"name"`
+	Id   string `json:"Id" db:"id"`
 }
 
 func SelectCameras(db *sqlx.DB) ([]CameraRecord, error) {
