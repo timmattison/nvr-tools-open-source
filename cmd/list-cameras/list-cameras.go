@@ -8,31 +8,24 @@ import (
 	"fmt"
 	"github.com/charmbracelet/log"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
-	"github.com/timmattison/nvr-tools-open-source/internal/nvr-environment"
 	"github.com/timmattison/nvr-tools-open-source/pkg/nvr-errors"
 	"github.com/timmattison/nvr-tools-open-source/pkg/nvr-unifi-protect"
-	"os"
 )
 
 func main() {
 	var unifiProtectHost string
+	var unifiProtectSshPort int
+	var unifiProtectSshUser string
 
-	flag.StringVar(&unifiProtectHost, "h", "", fmt.Sprintf("The UniFi Protect host to connect to (IP address or hostname) (can also be set via %s environment variable or .env file value)", nvr_environment.UnifiProtectHostKey))
+	flag.StringVar(&unifiProtectHost, "h", "", "The UniFi Protect host to connect to (IP address or hostname)")
+	flag.IntVar(&unifiProtectSshPort, "p", 22, "The SSH port on the UniFi Protect host")
+	flag.StringVar(&unifiProtectSshUser, "u", "root", "The SSH user on the UniFi Protect host")
 
 	flag.Parse()
 
 	if unifiProtectHost == "" {
-		if err := godotenv.Load(".env"); err != nil {
-			log.Warn("No .env file found and no host specified")
-		} else {
-			unifiProtectHost = os.Getenv(nvr_environment.UnifiProtectHostKey)
-		}
-
-		if unifiProtectHost == "" {
-			flag.Usage()
-			return
-		}
+		flag.Usage()
+		return
 	}
 
 	ctx, cancelFunc := context.WithCancelCause(context.Background())
@@ -40,7 +33,7 @@ func main() {
 	var tunneledDbSqlx *sqlx.DB
 	var err error
 
-	if tunneledDbSqlx, err = nvr_unifi_protect.GetTunneledUnifiProtectDbSqlx(ctx, cancelFunc, unifiProtectHost); err != nil {
+	if tunneledDbSqlx, err = nvr_unifi_protect.GetTunneledUnifiProtectDbSqlx(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser); err != nil {
 		if errors.Is(err, nvr_errors.ErrNoKnownHostKeyFound) {
 			log.Fatal("The known_hosts file does not contain the host key for the UniFi Protect host", "error", err)
 		} else if errors.Is(err, nvr_errors.ErrKnownHostKeyMismatch) {

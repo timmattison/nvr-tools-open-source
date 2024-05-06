@@ -21,29 +21,29 @@ const (
 	unifiProtectUsername = "root"
 )
 
-func GetTunneledUnifiProtectDbSql(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string) (*sql.DB, error) {
+func GetTunneledUnifiProtectDbSql(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string) (*sql.DB, error) {
 	var dbUrl *url.URL
 	var err error
 
-	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost); err != nil {
+	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser); err != nil {
 		return nil, err
 	}
 
 	return nvr_postgresql.OpenPostgresqlDbSql(dbUrl)
 }
 
-func GetTunneledUnifiProtectDbSqlx(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string) (*sqlx.DB, error) {
+func GetTunneledUnifiProtectDbSqlx(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string) (*sqlx.DB, error) {
 	var dbUrl *url.URL
 	var err error
 
-	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost); err != nil {
+	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser); err != nil {
 		return nil, err
 	}
 
 	return nvr_postgresql.OpenPostgresqlDbSqlx(dbUrl)
 }
 
-func getTunneledUnifiProtectDbUrl(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string) (*url.URL, error) {
+func getTunneledUnifiProtectDbUrl(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string) (*url.URL, error) {
 	var sshClient *ssh.Client
 	var err error
 
