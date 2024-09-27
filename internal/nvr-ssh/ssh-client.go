@@ -135,9 +135,9 @@ func getSshClientConfig(remoteUser string, allowUnverifiedHosts bool) (*ssh.Clie
 		}
 
 		hostKeyCallback = func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			ipAddress := strings.Split(hostname, ":")[0]
+			addressFromRemote := strings.Split(remote.String(), ":")[0]
 
-			if hostKey, ok := hostKeys[remote.String()]; ok {
+			if hostKey, ok := hostKeys[addressFromRemote]; ok {
 				if bytes.Equal(hostKey.Marshal(), key.Marshal()) {
 					return nil
 				}
@@ -145,7 +145,9 @@ func getSshClientConfig(remoteUser string, allowUnverifiedHosts bool) (*ssh.Clie
 				return nvr_errors.ErrKnownHostKeyMismatch
 			}
 
-			if hostKey, ok := hostKeys[ipAddress]; ok {
+			addressFromHostname := strings.Split(hostname, ":")[0]
+
+			if hostKey, ok := hostKeys[addressFromHostname]; ok {
 				if bytes.Equal(hostKey.Marshal(), key.Marshal()) {
 					return nil
 				}
