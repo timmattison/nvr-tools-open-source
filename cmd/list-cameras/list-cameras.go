@@ -33,7 +33,7 @@ func main() {
 	var tunneledDbSqlx *sqlx.DB
 	var err error
 
-	if tunneledDbSqlx, err = nvr_unifi_protect.GetTunneledUnifiProtectDbSqlx(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser); err != nil {
+	if tunneledDbSqlx, err = nvr_unifi_protect.GetTunneledUnifiProtectDbSqlx(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser, true); err != nil {
 		if errors.Is(err, nvr_errors.ErrNoKnownHostKeyFound) {
 			log.Fatal("The known_hosts file does not contain the host key for the UniFi Protect host", "error", err)
 		} else if errors.Is(err, nvr_errors.ErrKnownHostKeyMismatch) {

@@ -21,33 +21,33 @@ const (
 	unifiProtectUsername = "root"
 )
 
-func GetTunneledUnifiProtectDbSql(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string) (*sql.DB, error) {
+func GetTunneledUnifiProtectDbSql(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string, allowUnverifiedHosts bool) (*sql.DB, error) {
 	var dbUrl *url.URL
 	var err error
 
-	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser); err != nil {
+	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser, allowUnverifiedHosts); err != nil {
 		return nil, err
 	}
 
 	return nvr_postgresql.OpenPostgresqlDbSql(dbUrl)
 }
 
-func GetTunneledUnifiProtectDbSqlx(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string) (*sqlx.DB, error) {
+func GetTunneledUnifiProtectDbSqlx(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string, allowUnverifiedHosts bool) (*sqlx.DB, error) {
 	var dbUrl *url.URL
 	var err error
 
-	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser); err != nil {
+	if dbUrl, err = getTunneledUnifiProtectDbUrl(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectSshUser, allowUnverifiedHosts); err != nil {
 		return nil, err
 	}
 
 	return nvr_postgresql.OpenPostgresqlDbSqlx(dbUrl)
 }
 
-func getTunneledUnifiProtectDbUrl(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string) (*url.URL, error) {
+func getTunneledUnifiProtectDbUrl(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, unifiProtectSshPort int, unifiProtectSshUser string, allowUnverifiedHosts bool) (*url.URL, error) {
 	var sshClient *ssh.Client
 	var err error
 
-	if sshClient, err = getUnifiProtectSshClient(ctx, cancelFunc, unifiProtectHost); err != nil {
+	if sshClient, err = getUnifiProtectSshClient(ctx, cancelFunc, unifiProtectHost, allowUnverifiedHosts); err != nil {
 		return nil, err
 	}
 
@@ -61,8 +61,8 @@ func getTunneledUnifiProtectDbUrl(ctx context.Context, cancelFunc context.Cancel
 	return getUnifiProtectDbUrl(localIp, localPort), nil
 }
 
-func getUnifiProtectSshClient(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string) (*ssh.Client, error) {
-	return nvr_ssh.GetSshClient(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectUsername, false)
+func getUnifiProtectSshClient(ctx context.Context, cancelFunc context.CancelCauseFunc, unifiProtectHost string, allowUnverifiedHosts bool) (*ssh.Client, error) {
+	return nvr_ssh.GetSshClient(ctx, cancelFunc, unifiProtectHost, unifiProtectSshPort, unifiProtectUsername, allowUnverifiedHosts)
 }
 
 func tunnelToUnifiProtectDb(ctx context.Context, cancelFunc context.CancelCauseFunc, sshClient *ssh.Client) (string, int, error) {
